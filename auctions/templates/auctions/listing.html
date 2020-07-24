@@ -1,0 +1,20 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h2>Listing: {{listing.name}}</h2>
+    <img src="/media/{{listing.upload}}" alt="">
+
+    <div>{{listing.description}}</div>
+    <h3>${{listing.price|stringformat:".2f"}}</h3>
+        <label for="validationCustomUsername"></label>
+        <div class="input-group">
+            <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroupPrepend">$</span>
+            </div>
+            <input type="text" class="form-control" placeholder="Bid" aria-describedby="inputGroupPrepend" >
+        </div>
+    <h3>Details</h3>
+    <div>Category: {{listing.category}}</div>
+</div>
+{% endblock %}
