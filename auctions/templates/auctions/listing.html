@@ -6,7 +6,7 @@
     <img src="/media/{{listing.upload}}" alt="">
 
     <div>{{listing.description}}</div>
-    <h3>${{listing.price|stringformat:".2f"}}</h3>
+    <h3>${{current_price|stringformat:".2f"}}</h3>
         <label for="validationCustomUsername"></label>
         <div class="input-group">
             <div class="input-group-prepend">
@@ -16,5 +16,9 @@
         </div>
     <h3>Details</h3>
     <div>Category: {{listing.category}}</div>
+    <h3>Comments</h3>
+
+    {{user}}
+
 </div>
 {% endblock %}

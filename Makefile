@@ -50,3 +50,9 @@ rm: stop ## Stop and remove running containers
 
 clean: ## Clean the generated/compiles files
 	echo "nothing clean ..."
+
+migrations: ## Run Django  and create Migrations
+	docker-compose exec $(APP_NAME) python manage.py makemigrations
+
+migrate: ## Run Django and apply Migrations
+	docker-compose exec $(APP_NAME) python manage.py migrate

@@ -26,32 +26,8 @@
             {{ form.product_name.errors }}
             {{ form.product_image }}
         </div>
-
+        <input type="hidden" name="listed_by" value="{{ user }}">
+        
         <input type="submit" value="Submit">
     </form>
-
-    <!-- <form action="{% url 'create_listing' %}" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <input class="form-control" autofocus type="text" name="product_name" placeholder="Product Name">
-        </div>
-        <div class="form-group">
-            <textarea class="form-control" name="product_description" id="" cols="30" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="number" name="product_starting_bid" placeholder="Initia bid">
-        </div>
-        <div class="form-group">
-            <select name="product_category" id="" class="form-control">
-                {% for category in categories %}
-                    <option value="{{category.id}}">{{category.name}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="form-group">
-            <input class="form-control" type="file" name="product_image" placeholder="Confirm Password">
-        </div>
-        <input class="btn btn-primary" type="submit" value="Register">
-    </form> -->
-
 {% endblock %}

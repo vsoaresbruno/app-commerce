@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Max
 
 
 class User(AbstractUser):
@@ -20,14 +21,19 @@ class Listing(models.Model):
     upload = models.FileField(upload_to='uploads/', blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,  blank=True, related_name="category")
     is_active = models.BooleanField(default=True)
-    created = models.DateField()
+    created_at = models.DateField()
+    listed_by = models.ForeignKey(User, on_delete=models.CASCADE, default="", blank=True, related_name="user")
+
+    @property
+    def max_price(self):
+       return  Bid.objects.filter(auction=self).aggregate(Max('price'))['price__max']
 
     def __str__(self):
         return f"{self.name} {self.description} {self.price}"
 
 
 class Bid(models.Model):
-    auction = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    auction = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="auction_bid")
     price = models.DecimalField(max_digits=19, decimal_places=10)
 
     def __str__(self):
