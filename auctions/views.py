@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
@@ -26,6 +27,20 @@ def listings(request, id):
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "current_price": price
+    })
+
+def categories(request):
+    categories_list = Category.objects.all().order_by('name')
+
+    return render(request, "auctions/categories.html", {
+        "categories_list": categories_list
+    })
+
+def listing_by_category(request, category_id):
+    listings_list = Listing.objects.all().filter(category=category_id)
+    
+    return render(request, "auctions/index.html", {
+        "listings_list": listings_list
     })
 
 def login_view(request):
@@ -84,8 +99,7 @@ def create_listing(request):
         form = ListingForm(request.POST, request.FILES)
 
         if form.is_valid():
-            username = request.POST.get("listed_by")
-            user = User.objects.get(username=username)
+            user = request.user
             product_name = form.cleaned_data['product_name']
             product_description = form.cleaned_data['product_description']
             product_starting_bid = format(form.cleaned_data['product_starting_bid'], '.2f')
@@ -93,14 +107,20 @@ def create_listing(request):
             product_image = request.FILES.get('product_image', None)
             category = Category.objects.get(id=product_category)
             created_at = datetime.now()
-            listing = Listing(name=product_name, description=product_description, price=product_starting_bid,
-                                category=category, upload=product_image, created_at=created_at, listed_by=user)
-            listing.save()
-            # return HttpResponseRedirect('/thanks/')
+
+            try:
+                listing = Listing(name=product_name, description=product_description, price=product_starting_bid,
+                                    category=category, upload=product_image, created_at=created_at, listed_by=user)
+                listing.save()
+                #return HttpResponseRedirect('/thanks/')
+            except IntegrityError:
+                return render(request, 'auctions/create_listing.html', {
+                    "message": "Try Again"
+                })
     else:
         form = ListingForm()
 
     return render(request, 'auctions/create_listing.html', {
         'form': form,
         'categories': categories
-        })
+    })
