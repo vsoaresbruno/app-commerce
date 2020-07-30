@@ -9,24 +9,26 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Category, Listing, Bid
+from .models import User, Category, Listing, Bid, Comment
 from .forms import ListingForm
  
 def index(request):
     active_listing = Listing.objects.all().filter(is_active=True)
     
     return render(request, "auctions/index.html", {
-        "listings_list": active_listing 
+        "listings_list": active_listing
     })
 
 def listings(request, id):
     listing = Listing.objects.get(id=id)
     current_price = Bid.objects.filter(auction=id).aggregate(Max('price'))
     price = current_price['price__max'] or listing.price
+    comments = Comment.objects.all().filter(auction=listing)
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "current_price": price
+        "current_price": price,
+        "comments": comments
     })
 
 def categories(request):
@@ -42,6 +44,21 @@ def listing_by_category(request, category_id):
     return render(request, "auctions/index.html", {
         "listings_list": listings_list
     })
+
+@login_required
+def comments(request):
+    comment = request.POST.get('comment')
+    auction_id = request.POST.get('id')
+    auction = Listing.objects.get(id=auction_id)
+
+    try:
+        comment = Comment(comment= comment, auction=auction)
+        comment.save()
+    except IntegrityError:
+        pass
+
+    return HttpResponseRedirect(reverse("listings", args=[auction_id]))
+
 
 def login_view(request):
     if request.method == "POST":

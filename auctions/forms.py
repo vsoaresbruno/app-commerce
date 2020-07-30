@@ -17,4 +17,3 @@ class ListingForm(forms.Form):
         label='Select a file',
         help_text='max. 42 megabytes',
     )
-    

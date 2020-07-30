@@ -12,6 +12,7 @@ urlpatterns = [
     path("listings/<int:id>", views.listings, name="listings"),
     path("categories", views.categories, name="categories"),
     path("category/<int:category_id>", views.listing_by_category, name="listing_by_category"),
+    path("comments", views.comments, name="comments"),
 ]
 
 if settings.DEBUG:
