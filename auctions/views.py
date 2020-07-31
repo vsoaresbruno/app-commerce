@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Category, Listing, Bid, Comment
+from .models import User, Category, Listing, Bid, Comment, Wishlist
 from .forms import ListingForm
  
 def index(request):
@@ -24,11 +24,16 @@ def listings(request, id):
     current_price = Bid.objects.filter(auction=id).aggregate(Max('price'))
     price = current_price['price__max'] or listing.price
     comments = Comment.objects.all().filter(auction=listing)
+    wishlist = False
+    
+    if request.user.is_authenticated:
+        wishlist = Wishlist.objects.filter(auction=listing, user=request.user).exists()
 
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "current_price": price,
-        "comments": comments
+        "comments": comments,
+        "wishlist": wishlist
     })
 
 def categories(request):
@@ -47,18 +52,34 @@ def listing_by_category(request, category_id):
 
 @login_required
 def comments(request):
-    comment = request.POST.get('comment')
-    auction_id = request.POST.get('id')
-    auction = Listing.objects.get(id=auction_id)
-
-    try:
-        comment = Comment(comment= comment, auction=auction)
-        comment.save()
-    except IntegrityError:
-        pass
+    if request.method == "POST":
+        comment = request.POST.get('comment')
+        auction_id = request.POST.get('id')
+        auction = Listing.objects.get(id=auction_id)
+        try:
+            comment = Comment(comment= comment, auction=auction)
+            comment.save()
+        except IntegrityError:
+            pass
 
     return HttpResponseRedirect(reverse("listings", args=[auction_id]))
 
+@login_required
+def wishlist(request):
+    if request.method == "POST":
+        auction_id = request.POST.get('id')
+        auction = Listing.objects.get(id=auction_id)
+        wishlist = Wishlist.objects.filter(auction=auction, user=request.user)
+
+        if wishlist.exists():
+            wishlist.delete()
+            return HttpResponseRedirect(reverse("listings", args=[auction_id]))
+        else:
+            new_wishlist = Wishlist(auction= auction, user=request.user)
+            new_wishlist.save()
+            return HttpResponseRedirect(reverse("listings", args=[auction_id]))
+
+    
 
 def login_view(request):
     if request.method == "POST":

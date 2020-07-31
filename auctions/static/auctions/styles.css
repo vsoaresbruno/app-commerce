@@ -14,3 +14,7 @@ img {
 .card-img, .card-img-top {
     margin: 0 auto;
 }
+
+.wishlist {
+    border: none;
+}

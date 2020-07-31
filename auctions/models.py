@@ -46,3 +46,11 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.comment} {self.auction}"
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    auction = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="auction")
+
+    def __str__(self):
+        return f"{self.user} {self.auction}"

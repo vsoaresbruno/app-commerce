@@ -1,40 +1,60 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+  
 <div class="container">
-    <h2>Listing: {{listing.name}}</h2>
-    <img src="/media/{{listing.upload}}" alt="">
-
-    <div>{{listing.description}}</div>
-    <h3>${{current_price|stringformat:".2f"}}</h3>
-
-    <form action="">
-        <div class="form-group row">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                <span class="input-group-text" id="inputGroupPrepend">$</span>
-                </div>
-                <input type="text" class="form-control" placeholder="Bid" aria-describedby="inputGroupPrepend" >
-            </div>
-        </div>
-        <div class="form-group row">
-            <button type="submit" class="btn btn-primary">Place bid</button>
-        </div>  
-    </form>
-
-
+    <h2>Listing: {{listing.name}}</h2> 
+    {% if user.is_authenticated %}
     <div class="form-group row">
-        <div class="row">
-            <div class="col-sm-12">
-                <h3>Details</h3>
-                <div>Category: <strong>
-                    {% if listing.category %}
-                        {{listing.category}}
-                    {% else %}
-                        No category listed
-                    {% endif %}
-                </strong></div>
-                Listed by: <strong>{{listing.listed_by}}</strong> 
+        <form action="{% url 'wishlist' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{listing.id}}">
+                {% if wishlist %}
+                    <button type="submit" class="badge badge-secondary wishlist">Remove from wishlist</button>
+                {% else %}
+                    <button type="submit" class="badge badge-info wishlist">Add to wishlist</button>
+                {% endif %}
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-sm-4">
+            <img src="/media/{{listing.upload}}" alt="">
+        </div>
+        <div class="col-sm-8">
+            <div>{{listing.description}}</div>
+            <h3>${{current_price|stringformat:".2f"}}</h3>
+            
+            <form action="">
+                <div class="form-group row">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroupPrepend">$</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Bid" aria-describedby="inputGroupPrepend" >
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <button type="submit" class="btn btn-primary">Place bid</button>
+                </div>  
+            </form>
+
+            <div class="form-group row">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3>Details</h3>
+                        <div>Category: <strong>
+                            {% if listing.category %}
+                                {{listing.category}}
+                            {% else %}
+                                No category listed
+                            {% endif %}
+                        </strong></div>
+                        Listed by: <strong>{{listing.listed_by}}</strong> 
+                    </div>
+                </div>
             </div>
         </div>
     </div>
