@@ -7,13 +7,13 @@
     <h2>Listing: {{listing.name}}</h2> 
     {% if user.is_authenticated %}
     <div class="form-group row">
-        <form action="{% url 'wishlist' %}" method="post">
+        <form action="{% url 'watchlist' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="id" value="{{listing.id}}">
-                {% if wishlist %}
-                    <button type="submit" class="badge badge-secondary wishlist">Remove from wishlist</button>
+                {% if watchlist %}
+                    <button type="submit" class="badge badge-secondary watchlist">Remove from watchlist</button>
                 {% else %}
-                    <button type="submit" class="badge badge-info wishlist">Add to wishlist</button>
+                    <button type="submit" class="badge badge-info watchlist">Add to watchlist</button>
                 {% endif %}
             </form>
         </div>

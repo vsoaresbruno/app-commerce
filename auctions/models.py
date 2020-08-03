@@ -35,6 +35,7 @@ class Listing(models.Model):
 class Bid(models.Model):
     auction = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="auction_bid")
     price = models.DecimalField(max_digits=19, decimal_places=10)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.auction} {self.price}"
@@ -48,7 +49,7 @@ class Comment(models.Model):
         return f"{self.comment} {self.auction}"
 
 
-class Wishlist(models.Model):
+class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     auction = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="auction")
 

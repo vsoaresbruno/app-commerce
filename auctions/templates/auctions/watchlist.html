@@ -1,0 +1,31 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<h2>Whatlist</h2>
+<div class="container">
+    <div class="card-deck">
+        {% for listing in listings_list %}
+            <div class="card">
+                <img class="card-img-top" src="/media/{{ listing.upload }}" alt="Card image cap">
+                <div class="card-body">
+                <h5 class="card-title">{{ llisting.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted"> $
+                    {% if listing.max_price is not None %}
+                        {{ listing.max_price|stringformat:".2f" }}
+                    {% else %}
+                        {{ listing.price|stringformat:".2f" }}
+                    {% endif %}
+                </h6>
+                <p class="card-text">
+                    <a href="{% url 'listings' listing.id %}" class="btn btn-primary">see more</a>
+                </p>
+                <p class="card-text"><small class="text-muted">{{ listing.created }}</small></p>
+                </div>
+            </div>
+    {% if forloop.counter|divisibleby:3 %}
+    </div>
+    <div class="card-deck">
+    {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}
