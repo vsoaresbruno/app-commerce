@@ -7,24 +7,24 @@
     <form action="{% url 'create_listing' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
-            {{ form.product_name.errors }}
-            {{ form.product_name }}
+            {{ form.name.errors }}
+            {{ form.name }}
         </div>
         <div class="form-group">
-            {{ form.product_description.errors }}
-            {{ form.product_description }}
+            {{ form.description.errors }}
+            {{ form.description }}
         </div>
         <div class="form-group">
-            {{ form.product_starting_bid.errors }}
-            {{ form.product_starting_bid }}
+            {{ form.price.errors }}
+            {{ form.price }}
         </div>
         <div class="form-group">
-            {{ form.product_category.errors }}
-            {{ form.product_category }}
+            {{ form.category.errors }}
+            {{ form.category }}
         </div>
         <div class="form-group">
-            {{ form.product_name.errors }}
-            {{ form.product_image }}
+            {{ form.name.errors }}
+            {{ form.upload }}
         </div>
         <input type="submit" value="Submit">
     </form>

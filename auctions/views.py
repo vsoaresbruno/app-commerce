@@ -11,10 +11,10 @@ from django.contrib.auth.decorators import login_required
 
 from .models import User, Category, Listing, Bid, Comment, Watchlist
 from .forms import ListingForm
- 
+
 def index(request):
     active_listing = Listing.objects.all().filter(is_active=True)
-    
+
     return render(request, "auctions/index.html", {
         "listings_list": active_listing
     })
@@ -25,7 +25,7 @@ def listings(request, id):
     price = current_price['price__max'] or listing.price
     comments = Comment.objects.all().filter(auction=listing)
     watchlist = False
-    
+
     if request.user.is_authenticated:
         watchlist = Watchlist.objects.filter(auction=listing, user=request.user).exists()
 
@@ -45,7 +45,7 @@ def categories(request):
 
 def listing_by_category(request, category_id):
     listings_list = Listing.objects.all().filter(category=category_id)
-    
+
     return render(request, "auctions/index.html", {
         "listings_list": listings_list
     })
@@ -53,35 +53,22 @@ def listing_by_category(request, category_id):
 @login_required
 def create_listing(request):
     categories = Category.objects.all()
-    if request.method == 'POST':
-        form = ListingForm(request.POST or None, request.FILES or None)
-
-        if form.is_valid():
-            user = request.user
-            product_name = form.cleaned_data['product_name']
-            product_description = form.cleaned_data['product_description']
-            product_starting_bid = format(form.cleaned_data['product_starting_bid'], '.2f')
-            product_category = form.cleaned_data['product_category']
-            product_image = request.FILES.get('product_image', None)
-            category = Category.objects.get(id=product_category)
-            created_at = datetime.now()
-
-            try:
-                listing = Listing(name=product_name, description=product_description, price=product_starting_bid,
-                                    category=category, upload=product_image, created_at=created_at, listed_by=user)
-                listing.save()
-                #return HttpResponseRedirect('/thanks/')
-            except IntegrityError:
-                return render(request, 'auctions/create_listing.html', {
-                    "message": "Try Again"
-                })
-    else:
-        form = ListingForm()
-
-    return render(request, 'auctions/create_listing.html', {
+    # Faz com que os dados que o usuário digitou sejam carregados quando o form.is_valid() é False
+    form = ListingForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        # essa é uma instância do Listing preenchida com os dados do form
+        # (que foram declarados em ListingForm.fields)
+        instance = form.save(commit=False)
+        instance.listed_by = request.user
+        # faltou aquele auto_now_add
+        instance.created_at = datetime.now()
+        instance.save()
+        return HttpResponseRedirect(reverse("listings", args=[instance.id]))
+    context = {
         'form': form,
-        'categories': categories
-    })
+        'categories': categories,
+    }
+    return render(request, 'auctions/create_listing.html', context)
 
 @login_required
 def comments(request):
@@ -113,11 +100,13 @@ def watchlist(request):
             return HttpResponseRedirect(reverse("listings", args=[auction_id]))
     
     watchlist = Watchlist.objects.filter(user=request.user)
+
     watchlist_ids = (
         Watchlist.objects
         .filter(user=request.user)
         .values_list('auction_id', flat=True)
     )  
+
     listing = Listing.objects.filter(id__in=watchlist_ids)
 
     return render(request, "auctions/watchlist.html", {
