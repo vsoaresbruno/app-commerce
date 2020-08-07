@@ -54,7 +54,7 @@ def listing_by_category(request, category_id):
 def create_listing(request):
     categories = Category.objects.all()
     if request.method == 'POST':
-        form = ListingForm(request.POST, request.FILES)
+        form = ListingForm(request.POST or None, request.FILES or None)
 
         if form.is_valid():
             user = request.user
@@ -113,22 +113,39 @@ def watchlist(request):
             return HttpResponseRedirect(reverse("listings", args=[auction_id]))
     
     watchlist = Watchlist.objects.filter(user=request.user)
-    
-    watchlist_ids = []
-
-    for item in watchlist:
-        watchlist_ids.append(item.auction.id)
-
+    watchlist_ids = (
+        Watchlist.objects
+        .filter(user=request.user)
+        .values_list('auction_id', flat=True)
+    )  
     listing = Listing.objects.filter(id__in=watchlist_ids)
-    print(listing,"listing")
+
     return render(request, "auctions/watchlist.html", {
         "listings_list": listing
-
     })
 
 @login_required
-def place_bid(request, price):
-    pass
+def place_bid(request):
+    message = ''
+    if request.method == "POST":
+        bid_requested = int(request.POST.get("bid"))
+        auction_id = request.POST.get('id')
+        listing = Listing.objects.get(id=auction_id)
+        last_bid = Bid.objects.filter(auction=auction_id).aggregate(Max('price'))['price__max']
+        print(listing.price)
+        
+        if last_bid is not None and bid_requested > last_bid:
+            bid = Bid(auction=auction, price=bid_requested, user=request.user)
+            bid.save()
+        elif bid_requested > listing.price:
+            bid = Bid(auction=listing, price=bid_requested, user=request.user)
+            bid.save()
+        else:
+            message = "Bid need to be bigger than current price"
+            
+                
+    return HttpResponseRedirect(reverse('listings', args=(auction_id, message)))
+
 
 def login_view(request):
     if request.method == "POST":

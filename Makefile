@@ -24,7 +24,7 @@ help: ## This help.
 # Build the container
 build: ## Build the release and develoment container. The development
 	docker-compose build --no-cache $(APP_NAME)
-	docker-compose run $(APP_NAME) grunt build
+	docker-compose run $(APP_NAME) build
 	docker build -t $(APP_NAME) .
 
 
