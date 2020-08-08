@@ -18,3 +18,9 @@ img {
 .watchlist {
     border: none;
 }
+
+.messages .error {
+    color: tomato;
+    font-weight: 400;
+    margin: 10px 0;
+}

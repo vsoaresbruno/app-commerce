@@ -4,6 +4,7 @@ from typing import List
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.db.models import Max
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,21 +20,28 @@ def index(request):
         "listings_list": active_listing
     })
 
-def listings(request, id):
-    listing = Listing.objects.get(id=id)
-    current_price = Bid.objects.filter(auction=id).aggregate(Max('price'))
-    price = current_price['price__max'] or listing.price
+def listings(request, listing_id):
+    listing = Listing.objects.get(id=listing_id)
+    max_bid = Bid.objects.filter(auction=listing_id).aggregate(Max('price'))
+    price = max_bid['price__max'] or listing.price
     comments = Comment.objects.all().filter(auction=listing)
     watchlist = False
+    winner_bidder = ''
+    
+    highst_bid = Bid.objects.filter(auction=listing_id)
+    if highst_bid:
+        winner_bidder = highst_bid.latest('id').user
+
 
     if request.user.is_authenticated:
         watchlist = Watchlist.objects.filter(auction=listing, user=request.user).exists()
-
+    
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "current_price": price,
         "comments": comments,
-        "watchlist": watchlist
+        "watchlist": watchlist,
+        "winner_bidder": winner_bidder
     })
 
 def categories(request):
@@ -53,11 +61,8 @@ def listing_by_category(request, category_id):
 @login_required
 def create_listing(request):
     categories = Category.objects.all()
-    # Faz com que os dados que o usuário digitou sejam carregados quando o form.is_valid() é False
     form = ListingForm(request.POST or None, request.FILES or None)
     if form.is_valid():
-        # essa é uma instância do Listing preenchida com os dados do form
-        # (que foram declarados em ListingForm.fields)
         instance = form.save(commit=False)
         instance.listed_by = request.user
         # faltou aquele auto_now_add
@@ -115,26 +120,32 @@ def watchlist(request):
 
 @login_required
 def place_bid(request):
-    message = ''
     if request.method == "POST":
-        bid_requested = int(request.POST.get("bid"))
+        bid_requested = float(request.POST.get("bid"))
         auction_id = request.POST.get('id')
         listing = Listing.objects.get(id=auction_id)
         last_bid = Bid.objects.filter(auction=auction_id).aggregate(Max('price'))['price__max']
-        print(listing.price)
-        
-        if last_bid is not None and bid_requested > last_bid:
-            bid = Bid(auction=auction, price=bid_requested, user=request.user)
+        bid = Bid(auction=listing, price=bid_requested, user=request.user)
+       
+        if last_bid and bid_requested > last_bid:
             bid.save()
-        elif bid_requested > listing.price:
-            bid = Bid(auction=listing, price=bid_requested, user=request.user)
+        elif not last_bid and bid_requested > listing.price:
             bid.save()
         else:
-            message = "Bid need to be bigger than current price"
-            
-                
-    return HttpResponseRedirect(reverse('listings', args=(auction_id, message)))
+            messages.error(request, 'Bid need to be bigger than current price.')
 
+        return HttpResponseRedirect(reverse('listings', args=(auction_id)))
+
+    return HttpResponseRedirect(reverse('index'))
+
+def close_bid(request):
+    if request.method == 'POST':
+        auction_id = request.POST.get('id')
+        Listing.objects.filter(id=auction_id).update(is_active=False)
+        
+        return HttpResponseRedirect(reverse('listings', args=(auction_id)))
+
+    return HttpResponseRedirect(reverse('index'))
 
 def login_view(request):
     if request.method == "POST":
